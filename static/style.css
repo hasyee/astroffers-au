@@ -1,0 +1,227 @@
+body {
+  font-family: Roboto;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #f8f8f8;
+}
+
+body a {
+  cursor: pointer;
+  color: #01579b;
+}
+
+body a:hover {
+  text-decoration: underline;
+}
+
+.absolute {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+.layout {
+  display: flex;
+}
+
+.layout.row {
+  flex-direction: row;
+}
+
+.layout.column {
+  flex-direction: column;
+}
+
+.dynamic {
+  flex: 0 0 auto;
+}
+
+.fitted {
+  flex: 1 1 0;
+}
+
+.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.overflow {
+  overflow: auto;
+}
+
+.overflow-x {
+  overflow-x: auto;
+}
+
+.overflow-y {
+  overflow-y: auto;
+}
+
+.high {
+  z-index: 1;
+}
+
+.about-table td {
+  padding: 1vw;
+}
+
+main {
+  overflow: hidden;
+}
+
+header img {
+  width: 34px;
+  margin-bottom: -9px;
+  margin-right: 16px;
+}
+
+.about {
+  justify-content: space-around;
+  align-items: center;
+}
+
+.about img.logo {
+  width: 200px;
+  height: 200px;
+}
+
+.about img.nucleus {
+  height: 26px;
+  margin: 0px 5px -11px 5px;
+  transform: translateY(-3px);
+}
+
+.panel {
+  width: 300px;
+}
+
+.filter {
+  background-color: white;
+  box-shadow: 0px 2px 10px -3px rgba(0, 0, 0, 0.5);
+}
+
+.filter > .inputs {
+  padding: 0px 15px;
+}
+
+.filter > .button-container {
+  padding: 15px;
+}
+
+.result {
+  padding: 15px;
+  min-width: 800px;
+}
+
+.result > div {
+  margin-bottom: 15px;
+}
+
+.result > div:last-child {
+  margin-bottom: 0;
+}
+
+.card {
+  background-color: white;
+  box-shadow: 0px 2px 10px -3px rgba(0, 0, 0, 0.5);
+  padding: 15px;
+}
+
+.summary.card {
+  overflow: hidden;
+}
+
+.summary.card .count {
+  padding: 0px 20px;
+}
+
+.summary.card .count > div:first-child {
+  font-size: 40px;
+}
+
+.summary.card .moon {
+  padding-right: 20px;
+}
+
+.summary.card .moon > div:nth-child(1) {
+  padding: 15px;
+}
+
+.summary.card .moonback {
+  fill: rgba(0, 0, 0, 0.87);
+  stroke: rgba(0, 0, 0, 0.87);
+  stroke-width: 2;
+}
+
+.summary.card .moonlight {
+  fill: white;
+  stroke: rgba(0, 0, 0, 0.87);
+  stroke-width: 2;
+}
+
+.summary.card table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.summary.card table tr:not(:last-child) {
+  border-bottom: 1px solid rgb(224, 224, 224);
+}
+
+.summary.card table td {
+  padding: 10px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.summary.card table td:nth-child(even) {
+  text-align: right;
+}
+
+.summary.card .night {
+  margin-left: 10px;
+}
+
+.list.card .sorter {
+  cursor: pointer;
+}
+
+.list.card .sorter:hover {
+  text-decoration: underline;
+}
+
+.list > div > div {
+  overflow-y: scroll !important;
+}
+
+.list.row {
+  cursor: pointer;
+  user-select: none;
+}
+
+.list.row:hover {
+  background-color: #f8f8f8;
+}
+
+.list.row:active {
+  background-color: #efefef;
+}
+
+.details {
+  width: 100%;
+  padding-top: 5px;
+}
+
+.details table td {
+  padding: 0px 7px 7px 0px;
+  font-size: 13px;
+}
+
+.details img {
+  margin: 0px 18px 10px 0px;
+  width: 280px;
+  height: 280px;
+}
