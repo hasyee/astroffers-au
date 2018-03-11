@@ -1,6 +1,6 @@
 {
-  "name": "astroffers-au",
-  "version": "0.0.4",
+  "name": "astroffers",
+  "version": "1.0.0",
   "description": "Take offers to watch at given nights by the NGC2000 catalog",
   "main": "lib/main.js",
   "typings": "lib",
@@ -19,7 +19,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jayhasyee/astroffers-au.git"
+    "url": "git+https://github.com/jayhasyee/astroffers.git"
   },
   "keywords": [],
   "author": {
@@ -74,7 +74,7 @@
     "publish": {
       "provider": "github",
       "owner": "jayhasyee",
-      "repo": "astroffers-au"
+      "repo": "astroffers"
     },
     "mac": {
       "category": "public.app-category.astronomy"

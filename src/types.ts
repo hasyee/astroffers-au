@@ -13,13 +13,15 @@ export type Filter = {
   date: number;
   latitude: number;
   longitude: number;
+  observationTime: number;
   twilight: number;
   altitude: number;
   moonless: boolean;
   brightnessFilter: string;
   magnitude: number;
   surfaceBrightness: number;
-  types: TypeFilter;
+  types: SetFilter;
+  constellations: SetFilter;
 };
 
 export type Settings = {
@@ -32,7 +34,7 @@ export type Result = {
   list: NgcInfo[];
 };
 
-export type TypeFilter = {
+export type SetFilter = {
   [typeKey: string]: boolean;
 };
 
@@ -40,11 +42,12 @@ export enum ListItemProp {
   NGC = 'ngc',
   MESSIER = 'messier',
   NAME = 'name',
+  TYPE = 'type',
+  CONSTELLATION = 'constellation',
   FROM = 'from',
   TO = 'to',
-  MAGNITUDE = 'magnitude',
-  SURFACE_BRIGHTNESS = 'surfaceBrightness',
-  TYPE = 'type',
   MAX = 'max',
-  SUM = 'sum'
+  SUM = 'sum',
+  MAGNITUDE = 'magnitude',
+  SURFACE_BRIGHTNESS = 'surfaceBrightness'
 }

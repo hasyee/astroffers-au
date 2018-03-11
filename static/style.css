@@ -249,6 +249,14 @@ header img {
   width: 25px !important;
 }
 
+.list .type {
+  width: 50px !important;
+}
+
+.list .constellation {
+  width: 40px !important;
+}
+
 .list .from {
   width: 40px !important;
 }
@@ -266,11 +274,11 @@ header img {
 }
 
 .list .magnitude {
-  width: 60px !important;
+  width: 40px !important;
 }
 
 .list .surface-brightness {
-  width: 100px !important;
+  width: 40px !important;
 }
 
 .details {

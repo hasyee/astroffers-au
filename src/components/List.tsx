@@ -13,6 +13,8 @@ import {
 import { ListItemProp } from '../types';
 import { NgcInfo } from '../calcs/types';
 import display from '../utils/display';
+import resolveTypes from '../utils/resolveTypes';
+import resolveConstellation from '../utils/resolveConstellation';
 import { openDetails, sort } from '../actions';
 import { getList, isFiltering, getSortBy } from '../selectors';
 import LazyInput from './LazyInput';
@@ -129,6 +131,11 @@ export default connect(
                     Type{this.renderSortByIcon(ListItemProp.TYPE)}
                   </span>
                 </TableHeaderColumn>
+                <TableHeaderColumn className="constellation">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.CONSTELLATION)}>
+                    Cons.{this.renderSortByIcon(ListItemProp.CONSTELLATION)}
+                  </span>
+                </TableHeaderColumn>
                 <TableHeaderColumn className="from">
                   <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.FROM)}>
                     From{this.renderSortByIcon(ListItemProp.FROM)}
@@ -151,20 +158,33 @@ export default connect(
                 </TableHeaderColumn>
                 <TableHeaderColumn className="magnitude">
                   <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.MAGNITUDE)}>
-                    Magnitude{this.renderSortByIcon(ListItemProp.MAGNITUDE)}
+                    Mag.{this.renderSortByIcon(ListItemProp.MAGNITUDE)}
                   </span>
                 </TableHeaderColumn>
                 <TableHeaderColumn className="surface-brightness">
                   <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.SURFACE_BRIGHTNESS)}>
-                    Surface brightness{this.renderSortByIcon(ListItemProp.SURFACE_BRIGHTNESS)}
+                    Sur.br.{this.renderSortByIcon(ListItemProp.SURFACE_BRIGHTNESS)}
                   </span>
                 </TableHeaderColumn>
               </TableRow>
             </TableHeader>
             <TableBody displayRowCheckbox={false} preScanRows={false}>
               {objects.slice(0, displayedItems).filter(search(this.state.filter)).map(ngcInfo => {
-                const { ngc, messier, name, type, from, to, max, sum, magnitude, surfaceBrightness } = display(ngcInfo);
-
+                const {
+                  ngc,
+                  messier,
+                  name,
+                  types,
+                  constellation,
+                  from,
+                  to,
+                  max,
+                  sum,
+                  magnitude,
+                  surfaceBrightness
+                } = display(ngcInfo);
+                const typeStr = types.join(', ');
+                const resolvedTypeStr = resolveTypes(types);
                 return (
                   <TableRow key={ngc} selectable={false} className="list row" onClick={this.handleRowClick(ngc)}>
                     <TableRowColumn className="ngc">
@@ -174,8 +194,11 @@ export default connect(
                     <TableRowColumn className="name" title={name}>
                       {name}
                     </TableRowColumn>
-                    <TableRowColumn className="type" title={type}>
-                      {type}
+                    <TableRowColumn className="type" title={resolvedTypeStr}>
+                      {typeStr}
+                    </TableRowColumn>
+                    <TableRowColumn className="constellation" title={resolveConstellation(constellation)}>
+                      {constellation}
                     </TableRowColumn>
                     <TableRowColumn className="from">{from}</TableRowColumn>
                     <TableRowColumn className="to">{to}</TableRowColumn>
