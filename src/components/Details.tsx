@@ -10,46 +10,65 @@ import moment = require('moment');
 import leftpad = require('left-pad');
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
+import CircularProgress from 'material-ui/CircularProgress';
 import { NgcInfo, NightInfo, Az, CoordSeries } from '../calcs/types';
 import resolveTypes from '../calcs/resolveTypes';
-import getHorizontalCoordSeries from '../calcs/getHorizontalCoordSeries';
+
 import { dmsToString, hmsToString, radToDmsString, radToHmsString, radToDeg } from '../calcs/units';
-import { closeDetails, track } from '../actions';
+import { openDetails, closeDetails, track } from '../actions';
+import {
+  isOpenDetails,
+  getNightInfo,
+  getAdjacentDetails,
+  getOpenedNgcInfo,
+  getHorizontalCoords,
+  getMinAltitde
+} from '../selectors';
 import AltitudeChart from './AltitudeChart';
 import AzimuthChart from './AzimuthChart';
+
+const getTitle = (ngcInfo: NgcInfo): string => {
+  const object = ngcInfo ? ngcInfo.object : null;
+  if (!object) return 'Unknown';
+  return [ `NGC ${object.ngc}`, object.messier ? `M ${object.messier}` : null, object.name || null ]
+    .filter(_ => _)
+    .join(' | ');
+};
 
 const getImgSrc = (ngc: number): string =>
   `http://www.ngcicproject.org/dss/n/${Math.floor(ngc / 1000)}/n${leftpad(ngc, 4, 0)}.jpg`;
 
+const leftButtonStyle = { float: 'left' };
+
 export default connect(
-  ({ openedDetails, result }) => {
-    const ngcInfo = result ? result.list.find(info => info.object.ngc === openedDetails) : null;
-    return {
-      isOpen: openedDetails !== null,
-      nightInfo: result ? result.nightInfo : null,
-      ngcInfo,
-      horizontalCoords: ngcInfo
-        ? getHorizontalCoordSeries(
-            result.filter.date,
-            result.filter.latitude,
-            result.filter.longitude,
-            ngcInfo.eqCoordsOnDate
-          )
-        : null,
-      minAltitude: result ? result.filter.altitude : null
-    };
-  },
-  { closeDetails, track }
+  state => ({
+    isOpen: isOpenDetails(state),
+    nightInfo: getNightInfo(state),
+    ngcInfo: getOpenedNgcInfo(state),
+    horizontalCoords: getHorizontalCoords(state),
+    minAltitude: getMinAltitde(state),
+    prevDetails: getAdjacentDetails(-1)(state),
+    nextDetails: getAdjacentDetails(+1)(state)
+  }),
+  { openDetails, closeDetails, track }
 )(
-  class extends React.PureComponent<{
-    isOpen: boolean;
-    ngcInfo: NgcInfo;
-    nightInfo: NightInfo;
-    minAltitude: number;
-    horizontalCoords: CoordSeries<Az>;
-    closeDetails: typeof closeDetails;
-    track: typeof track;
-  }> {
+  class extends React.PureComponent<
+    {
+      isOpen: boolean;
+      ngcInfo: NgcInfo;
+      nightInfo: NightInfo;
+      minAltitude: number;
+      prevDetails: number;
+      nextDetails: number;
+      horizontalCoords: CoordSeries<Az>;
+      openDetails: typeof openDetails;
+      closeDetails: typeof closeDetails;
+      track: typeof track;
+    },
+    { imageIsLoading: boolean }
+  > {
+    state = { imageIsLoading: true };
+
     componentDidUpdate(prevProps) {
       if (prevProps.isOpen === false && this.props.isOpen === true) {
         this.props.track('View', 'open-details');
@@ -57,13 +76,21 @@ export default connect(
       }
     }
 
+    componentWillReceiveProps(nextProps) {
+      if (this.props.ngcInfo !== nextProps.ngcInfo) this.setState({ imageIsLoading: true });
+    }
+
+    handleClickPrevDetails = () => this.props.openDetails(this.props.prevDetails);
+    handleClickNextDetails = () => this.props.openDetails(this.props.nextDetails);
+    handleImageLoaded = () => this.setState({ imageIsLoading: false });
+
     renderContent() {
       if (!this.props.ngcInfo) return null;
       const {
         horizontalCoords,
         nightInfo,
         ngcInfo: {
-          object: { ngc, type, constellation, size, magnitude, surfaceBrightness, eqCoords },
+          object: { ngc, messier, name, type, constellation, size, magnitude, surfaceBrightness, eqCoords },
           eqCoordsOnDate,
           max,
           sum,
@@ -76,6 +103,7 @@ export default connect(
         },
         minAltitude
       } = this.props;
+      const { imageIsLoading } = this.state;
       return (
         <div className="details">
           <div className="dynamic row layout">
@@ -187,8 +215,14 @@ export default connect(
                 </tbody>
               </table>
             </div>
-            <div className="dynamic layout">
-              <img alt={`preview of ${ngc}`} src={getImgSrc(ngc)} />
+            <div className="dynamic layout center image-container">
+              {imageIsLoading ? <CircularProgress /> : null}
+              <img
+                alt={`preview of ${ngc}`}
+                src={getImgSrc(ngc)}
+                className={imageIsLoading ? 'hidden' : null}
+                onLoad={this.handleImageLoaded}
+              />
             </div>
           </div>
           <div className="dynamic row layout">
@@ -209,11 +243,25 @@ export default connect(
     }
 
     render() {
-      const { closeDetails, isOpen } = this.props;
-      const actions = [ <FlatButton label="Close" primary={true} onClick={closeDetails} /> ];
+      const { closeDetails, isOpen, prevDetails, nextDetails } = this.props;
+      const actions = [
+        <FlatButton
+          label="Previous"
+          disabled={!prevDetails}
+          onClick={this.handleClickPrevDetails}
+          style={leftButtonStyle}
+        />,
+        <FlatButton
+          label="Next"
+          disabled={!nextDetails}
+          onClick={this.handleClickNextDetails}
+          style={leftButtonStyle}
+        />,
+        <FlatButton label="Close" primary onClick={closeDetails} />
+      ];
       return (
         <Dialog
-          title={`NGC ${this.props.ngcInfo && this.props.ngcInfo.object ? this.props.ngcInfo.object.ngc : 'Unknown'}`}
+          title={getTitle(this.props.ngcInfo)}
           actions={actions}
           modal={false}
           open={isOpen}

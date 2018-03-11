@@ -1,8 +1,9 @@
 import { NgcInfo, NightInfo } from './calcs/types';
 
 export type State = {
-  packageJson: object;
+  packageJson: any;
   filter: Filter;
+  settings: Settings;
   result: Result;
   isFiltering: boolean;
   openedDetails: number;
@@ -21,6 +22,10 @@ export type Filter = {
   types: TypeFilter;
 };
 
+export type Settings = {
+  sortBy: ListItemProp;
+};
+
 export type Result = {
   filter: Filter;
   nightInfo: NightInfo;
@@ -30,3 +35,16 @@ export type Result = {
 export type TypeFilter = {
   [typeKey: string]: boolean;
 };
+
+export enum ListItemProp {
+  NGC = 'ngc',
+  MESSIER = 'messier',
+  NAME = 'name',
+  FROM = 'from',
+  TO = 'to',
+  MAGNITUDE = 'magnitude',
+  SURFACE_BRIGHTNESS = 'surfaceBrightness',
+  TYPE = 'type',
+  MAX = 'max',
+  SUM = 'sum'
+}

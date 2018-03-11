@@ -1,6 +1,5 @@
 import React = require('react');
 import { findDOMNode } from 'react-dom';
-import moment = require('moment');
 const { connect } = require('react-redux');
 import {
   Table,
@@ -11,23 +10,38 @@ import {
   TableRow,
   TableRowColumn
 } from 'material-ui/Table';
+import { ListItemProp } from '../types';
 import { NgcInfo } from '../calcs/types';
-import { radToDeg } from '../calcs/units';
-import resolveTypes from '../calcs/resolveTypes';
-import { stringifyTimeDiff } from '../calcs/utils';
-import { openDetails } from '../actions';
+import display from '../utils/display';
+import { openDetails, sort } from '../actions';
+import { getList, isFiltering, getSortBy } from '../selectors';
+import LazyInput from './LazyInput';
 
 const DEFAULT_DISPLAYED_ITEMS = 100;
 
-export default connect(({ result, isFiltering }) => ({ objects: result ? result.list : null, isFiltering }), {
-  openDetails
-})(
-  class extends React.PureComponent<{ objects: NgcInfo[]; isFiltering: boolean; openDetails: typeof openDetails }> {
+export default connect(
+  state => ({ objects: getList(state), isFiltering: isFiltering(state), sortBy: getSortBy(state) }),
+  { openDetails, sort }
+)(
+  class extends React.PureComponent<
+    {
+      objects: NgcInfo[];
+      isFiltering: boolean;
+      sortBy: ListItemProp;
+      openDetails: typeof openDetails;
+      sort: typeof sort;
+    },
+    { displayedItems: number; filter: { [key in ListItemProp]?: string } }
+  > {
     private table;
 
     state = {
       displayedItems: DEFAULT_DISPLAYED_ITEMS,
-      sortBy: PROP.MAX
+      filter: {
+        [ListItemProp.NGC]: '',
+        [ListItemProp.MESSIER]: '',
+        [ListItemProp.NAME]: ''
+      }
     };
 
     initScroll() {
@@ -55,103 +69,123 @@ export default connect(({ result, isFiltering }) => ({ objects: result ? result.
       if (prevProps.objects !== this.props.objects) {
         this.initScroll();
       }
+      if (prevProps.sortBy !== this.props.sortBy) {
+        this.setState({ displayedItems: DEFAULT_DISPLAYED_ITEMS });
+        if (this.table) this.table.scrollTop = 0;
+      }
     }
 
-    handleHeaderClick = (prop: PROP) => () => {
-      if (prop !== this.state.sortBy) {
-        this.setState({ sortBy: prop, displayedItems: DEFAULT_DISPLAYED_ITEMS });
-        this.table.scrollTop = 0;
+    handleHeaderClick = (prop: ListItemProp) => () => {
+      if (prop !== this.props.sortBy) {
+        this.props.sort(prop);
       }
+    };
+
+    handleFilterChange = (prop: ListItemProp) => value => {
+      this.setState({ filter: { ...this.state.filter, [prop]: value } });
     };
 
     handleRowClick = (ngc: number) => () => this.props.openDetails(ngc);
 
     renderSortByIcon(prop: string) {
-      return prop === this.state.sortBy && <i className="mdi mdi-arrow-down" />;
+      return prop === this.props.sortBy && <i className="mdi mdi-arrow-down" />;
     }
 
     render() {
-      const { sortBy, displayedItems } = this.state;
-      const { isFiltering, objects } = this.props;
+      const { displayedItems, filter } = this.state;
+      const { sortBy, isFiltering, objects } = this.props;
       if (isFiltering || !objects) return null;
       return (
         <div className="fitted layout list card">
           <Table selectable={false} height={'calc(100% - 59px)'} ref="table" style={{ overflow: 'hidden' }}>
             <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
               <TableRow>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.NGC)}>
-                    NGC{this.renderSortByIcon(PROP.NGC)}
+                <TableHeaderColumn className="ngc">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.NGC)}>
+                    NGC{this.renderSortByIcon(ListItemProp.NGC)}
+                  </span>
+                  <br />
+                  <LazyInput value={filter[ListItemProp.NGC]} onTypeEnd={this.handleFilterChange(ListItemProp.NGC)} />
+                </TableHeaderColumn>
+                <TableHeaderColumn className="messier">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.MESSIER)}>
+                    M{this.renderSortByIcon(ListItemProp.MESSIER)}
+                  </span>
+                  <br />
+                  <LazyInput
+                    value={filter[ListItemProp.MESSIER]}
+                    onTypeEnd={this.handleFilterChange(ListItemProp.MESSIER)}
+                  />
+                </TableHeaderColumn>
+                <TableHeaderColumn className="name">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.NAME)}>
+                    Name{this.renderSortByIcon(ListItemProp.NAME)}
+                  </span>
+                  <br />
+                  <LazyInput value={filter[ListItemProp.NAME]} onTypeEnd={this.handleFilterChange(ListItemProp.NAME)} />
+                </TableHeaderColumn>
+                <TableHeaderColumn className="type">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.TYPE)}>
+                    Type{this.renderSortByIcon(ListItemProp.TYPE)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.TYPE)}>
-                    Type{this.renderSortByIcon(PROP.TYPE)}
+                <TableHeaderColumn className="from">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.FROM)}>
+                    From{this.renderSortByIcon(ListItemProp.FROM)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.FROM)}>
-                    From{this.renderSortByIcon(PROP.FROM)}
+                <TableHeaderColumn className="to">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.TO)}>
+                    To{this.renderSortByIcon(ListItemProp.TO)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.TO)}>
-                    To{this.renderSortByIcon(PROP.TO)}
+                <TableHeaderColumn className="max">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.MAX)}>
+                    Max / Alt{this.renderSortByIcon(ListItemProp.MAX)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.MAX)}>
-                    Max / Alt{this.renderSortByIcon(PROP.MAX)}
+                <TableHeaderColumn className="sum">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.SUM)}>
+                    Sum{this.renderSortByIcon(ListItemProp.SUM)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.SUM)}>
-                    Sum{this.renderSortByIcon(PROP.SUM)}
+                <TableHeaderColumn className="magnitude">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.MAGNITUDE)}>
+                    Magnitude{this.renderSortByIcon(ListItemProp.MAGNITUDE)}
                   </span>
                 </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.MAGNITUDE)}>
-                    Magnitude{this.renderSortByIcon(PROP.MAGNITUDE)}
-                  </span>
-                </TableHeaderColumn>
-                <TableHeaderColumn>
-                  <span className="sorter" onClick={this.handleHeaderClick(PROP.SURFACE_BRIGHTNESS)}>
-                    Surface brightness{this.renderSortByIcon(PROP.SURFACE_BRIGHTNESS)}
+                <TableHeaderColumn className="surface-brightness">
+                  <span className="sorter" onClick={this.handleHeaderClick(ListItemProp.SURFACE_BRIGHTNESS)}>
+                    Surface brightness{this.renderSortByIcon(ListItemProp.SURFACE_BRIGHTNESS)}
                   </span>
                 </TableHeaderColumn>
               </TableRow>
             </TableHeader>
             <TableBody displayRowCheckbox={false} preScanRows={false}>
-              {objects
-                .sort(sorters[sortBy])
-                .slice(0, displayedItems)
-                .map(
-                  ({
-                    object: { ngc, magnitude, surfaceBrightness, type },
-                    intersection: { start, end },
-                    max,
-                    sum,
-                    altitudeAtMax
-                  }) => {
-                    const resolvedType = resolveTypes(type).join(', ');
-                    return (
-                      <TableRow key={ngc} selectable={false} className="list row" onClick={this.handleRowClick(ngc)}>
-                        <TableRowColumn>
-                          <b>{ngc}</b>
-                        </TableRowColumn>
-                        <TableRowColumn title={resolvedType}>{resolvedType}</TableRowColumn>
-                        <TableRowColumn>{moment(start).format('HH:mm')}</TableRowColumn>
-                        <TableRowColumn>{moment(end).format('HH:mm')}</TableRowColumn>
-                        <TableRowColumn>
-                          {moment(max).format('HH:mm')} / {Math.round(radToDeg(altitudeAtMax))}°
-                        </TableRowColumn>
-                        <TableRowColumn>{stringifyTimeDiff(sum)}</TableRowColumn>
-                        <TableRowColumn>{magnitude}</TableRowColumn>
-                        <TableRowColumn>{surfaceBrightness}</TableRowColumn>
-                      </TableRow>
-                    );
-                  }
-                )}
+              {objects.slice(0, displayedItems).filter(search(this.state.filter)).map(ngcInfo => {
+                const { ngc, messier, name, type, from, to, max, sum, magnitude, surfaceBrightness } = display(ngcInfo);
+
+                return (
+                  <TableRow key={ngc} selectable={false} className="list row" onClick={this.handleRowClick(ngc)}>
+                    <TableRowColumn className="ngc">
+                      <b>{ngc}</b>
+                    </TableRowColumn>
+                    <TableRowColumn className="messier">{messier}</TableRowColumn>
+                    <TableRowColumn className="name" title={name}>
+                      {name}
+                    </TableRowColumn>
+                    <TableRowColumn className="type" title={type}>
+                      {type}
+                    </TableRowColumn>
+                    <TableRowColumn className="from">{from}</TableRowColumn>
+                    <TableRowColumn className="to">{to}</TableRowColumn>
+                    <TableRowColumn className="max">{max}</TableRowColumn>
+                    <TableRowColumn className="sum">{sum}</TableRowColumn>
+                    <TableRowColumn className="magnitude">{magnitude}</TableRowColumn>
+                    <TableRowColumn className="surface-brightness">{surfaceBrightness}</TableRowColumn>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -160,35 +194,22 @@ export default connect(({ result, isFiltering }) => ({ objects: result ? result.
   }
 );
 
-export enum PROP {
-  NGC = 'ngc',
-  FROM = 'from',
-  TO = 'to',
-  MAGNITUDE = 'magnitude',
-  SURFACE_BRIGHTNESS = 'surfaceBrightness',
-  TYPE = 'type',
-  MAX = 'max',
-  SUM = 'sum'
-}
+const search = (filter: { [key in ListItemProp]?: string }) => (ngcInfo: NgcInfo): boolean => {
+  if (filter[ListItemProp.NGC] && filter[ListItemProp.NGC] !== ngcInfo.object.ngc.toString()) return false;
+  if (filter[ListItemProp.MESSIER] && !ngcInfo.object.messier) return false;
+  if (
+    filter[ListItemProp.MESSIER] &&
+    ngcInfo.object.messier &&
+    filter[ListItemProp.MESSIER] !== ngcInfo.object.messier.toString()
+  )
+    return false;
+  if (filter[ListItemProp.NAME] && !ngcInfo.object.name) return false;
+  if (
+    filter[ListItemProp.NAME] &&
+    ngcInfo.object.name &&
+    ngcInfo.object.name.toLowerCase().search(filter[ListItemProp.NAME].toLowerCase()) === -1
+  )
+    return false;
 
-const defaultSorter = (propertySelector: Function) => (a: NgcInfo, b: NgcInfo) => {
-  const aProp = propertySelector(a);
-  const bProp = propertySelector(b);
-  if (aProp < bProp) return -1;
-  else if (aProp > bProp) return 1;
-  else return 0;
-};
-
-const sorters = {
-  [PROP.NGC]: defaultSorter((object: NgcInfo) => object.object.ngc),
-  [PROP.FROM]: defaultSorter((object: NgcInfo) => object.intersection.start),
-  [PROP.TO]: defaultSorter((object: NgcInfo) => object.intersection.end),
-  [PROP.MAX]: (a: NgcInfo, b: NgcInfo) => {
-    const maxDiff = a.max - b.max;
-    return maxDiff === 0 ? a.sum - b.sum : maxDiff;
-  },
-  [PROP.SUM]: defaultSorter((object: NgcInfo) => object.sum),
-  [PROP.MAGNITUDE]: defaultSorter((object: NgcInfo) => object.object.magnitude),
-  [PROP.SURFACE_BRIGHTNESS]: defaultSorter((object: NgcInfo) => object.object.surfaceBrightness),
-  [PROP.TYPE]: defaultSorter((object: NgcInfo) => object.object.type)
+  return true;
 };

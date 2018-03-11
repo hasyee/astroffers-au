@@ -21,6 +21,10 @@ body a:hover {
   right: 0px;
 }
 
+.hidden {
+  display: none;
+}
+
 .layout {
   display: flex;
 }
@@ -197,6 +201,28 @@ header img {
   overflow-y: scroll !important;
 }
 
+.list th {
+  padding: 10px 15px 5px 15px !important;
+  height: auto !important;
+  vertical-align: top;
+}
+
+.list th input {
+  outline: none;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgb(158, 158, 158);
+}
+
+.list th input[value=""] {
+  visibility: hidden;
+}
+
+.list th:hover input,
+.list th input:focus {
+  visibility: visible;
+}
+
 .list.row {
   cursor: pointer;
   user-select: none;
@@ -210,6 +236,43 @@ header img {
   background-color: #efefef;
 }
 
+.list td {
+  padding: 5px 15px !important;
+  height: auto !important;
+}
+
+.list .ngc {
+  width: 40px !important;
+}
+
+.list .messier {
+  width: 25px !important;
+}
+
+.list .from {
+  width: 40px !important;
+}
+
+.list .to {
+  width: 40px !important;
+}
+
+.list .max {
+  width: 80px !important;
+}
+
+.list .sum {
+  width: 40px !important;
+}
+
+.list .magnitude {
+  width: 60px !important;
+}
+
+.list .surface-brightness {
+  width: 100px !important;
+}
+
 .details {
   width: 100%;
   padding-top: 5px;
@@ -220,8 +283,13 @@ header img {
   font-size: 13px;
 }
 
-.details img {
+.details .image-container {
   margin: 0px 18px 10px 0px;
+  width: 280px;
+  height: 280px;
+}
+
+.details img {
   width: 280px;
   height: 280px;
 }
